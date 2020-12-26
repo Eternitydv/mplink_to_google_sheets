@@ -17,8 +17,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 class ui:
     link = 'https://osu.ppy.sh/community/matches/72098518'
-    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
-    #spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
+    #spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
+    spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
     sheetname = 'Week 3(2)'
     startColumnIndex = 7
     endColumnIndex = 67
@@ -27,6 +27,7 @@ class ui:
     numberOfPeople = 0
     incr = {}
     diff = {'Easy' : 600000, 'Medium' : 500000, 'Hard' : 400000, 'Markrum' : 150000}
+
     def __init__(self, root):
         root.title("Булщит в шит")
         root.geometry("500x100")
@@ -75,7 +76,7 @@ class ui:
         mappool_size = 0
         for item in data["events"]:
             if "game" in item.keys():
-                print(json.dumps(item,indent=4))
+                #print(json.dumps(item,indent=4))
                 for score in item["game"]["scores"]:
                     name = score["user_id"]
                     if name not in dict_of_scores.keys():
@@ -86,22 +87,30 @@ class ui:
                     dict_of_scores[name][0].append(score["score"])
                     dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
                 counter+=1
-        print('mappool size = ' + str(counter))
+        temp = []
+        for score in dict_of_scores.values():
+            temp.append(len(score[0]))
+        self.mappool_size = int(statistics.median(temp))
+        print('mappool size = ' + str(self.mappool_size))
 
         list_of_ids = list(dict_of_scores.keys())
         names = []
         self.numberOfPeople = len(list_of_ids)
 
         self.endColumnIndex = self.startColumnIndex + self.numberOfPeople*2
-        self.mappool_size = counter
-
+        counter = 0
         for scores in dict_of_scores.values():
-            if len(scores[0]) < counter:
-                for i in range(len(scores[0]), counter):
+            print(scores[0])
+            if len(scores[0]) < self.mappool_size:
+                for i in range(len(scores[0]), self.mappool_size):
                     scores[0].append(0)
                     scores[1].append(0)
+            if len(scores[0]) > self.mappool_size:
+                for i in range(self.mappool_size):
+                    if scores[0][i] == 0:
+                        scores[0][i] = scores[0].pop(self.mappool_size)
+                        scores[1][i] = scores[1].pop(self.mappool_size)
 
-        print('mappool size = ' + str(self.mappool_size))
         self.endRowIndex = self.startRowIndex + self.mappool_size +  1
 
         for id in list_of_ids:
@@ -130,60 +139,60 @@ class ui:
         if sheet_id.get() != None:
             self.spreadsheetId = sheet_id.get()
         results = self.parse_the_link(self.link)
-        # self.fill_the_incr()
-        # CREDENTIALS_FILE = 'match-results-19f739c32961.json'
-        # credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE,
-        # ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'])
-        # httpAuth = credentials.authorize(httplib2.Http()) # Авторизуемся в системе
-        # service = apiclient.discovery.build('sheets', 'v4', http = httpAuth)
+        self.fill_the_incr()
+        CREDENTIALS_FILE = 'D:/Useful misc/мплинкпарсер/mplink_to_google_sheets/match-results-19f739c32961.json'
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE,
+        ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'])
+        httpAuth = credentials.authorize(httplib2.Http()) # Авторизуемся в системе
+        service = apiclient.discovery.build('sheets', 'v4', http = httpAuth)
 
-        # service = build('sheets', 'v4', credentials=credentials)
-        # spreadsheet = service.spreadsheets().get(spreadsheetId = self.spreadsheetId).execute()
-        # difficulty = service.spreadsheets().values().get(spreadsheetId = self.spreadsheetId, 
-        # range = self.sheetname + "!C23", valueRenderOption='UNFORMATTED_VALUE').execute()['values'][0][0]
-        # print(difficulty)
-        # divider = self.diff[difficulty]
-        # for scores in results.values():
-        #     scores[0].append('%.2f'%(sum(scores[0])/self.mappool_size/divider))
-        #     print(scores[0][-1])
-        # print("end row index " + str(self.endRowIndex))
-        # self.columnToWrite = "G"
-        # print('starting to fill the sheet')
-        # for k in results.items():
-        #     batch_update_spreadsheet_request_body = {
-        #         "valueInputOption": "USER_ENTERED",
-        #         "data" : 
-        #         [
-        #             {
-        #                 "range" : self.sheetname + "!" + self.columnToWrite +"3:AL25",
-        #                 "majorDimension" : "COLUMNS",
-        #                 "values" : 
-        #                 [
-        #                     k[1][0], k[1][1]
-        #                 ]
-        #             },
-        #             {
-        #                 "range" : self.sheetname + "!"+ self.columnToWrite +"2",
-        #                 "majorDimension" : "rows",
-        #                 "values" : 
-        #                 [
-        #                     [k[0]]
-        #                 ]
-        #             },
-        #             {
-        #                 "range" : self.sheetname + "!F" + str(self.endRowIndex-1),
-        #                 "majorDimension" : "rows",
-        #                 "values" : 
-        #                 [
-        #                     ['Match cost: ']
-        #                 ]
-        #             }
-        #         ]
-        #     }
-        #     res = service.spreadsheets().values().batchUpdate(spreadsheetId = self.spreadsheetId,
-        #     body = batch_update_spreadsheet_request_body).execute()
-        #     self.columnToWrite = self.incr[self.columnToWrite]
-        #     print('done with ' + k[0])
+        service = build('sheets', 'v4', credentials=credentials)
+        spreadsheet = service.spreadsheets().get(spreadsheetId = self.spreadsheetId).execute()
+        difficulty = service.spreadsheets().values().get(spreadsheetId = self.spreadsheetId, 
+        range = self.sheetname + "!C23", valueRenderOption='UNFORMATTED_VALUE').execute()['values'][0][0]
+        print(difficulty)
+        divider = self.diff[difficulty]
+        for scores in results.values():
+            scores[0].append('%.2f'%(sum(scores[0])/self.mappool_size/divider))
+            print(scores[0][-1])
+        print("end row index " + str(self.endRowIndex))
+        self.columnToWrite = "G"
+        print('starting to fill the sheet')
+        for k in results.items():
+            batch_update_spreadsheet_request_body = {
+                "valueInputOption": "USER_ENTERED",
+                "data" : 
+                [
+                    {
+                        "range" : self.sheetname + "!" + self.columnToWrite +"3:AL25",
+                        "majorDimension" : "COLUMNS",
+                        "values" : 
+                        [
+                            k[1][0], k[1][1]
+                        ]
+                    },
+                    {
+                        "range" : self.sheetname + "!"+ self.columnToWrite +"2",
+                        "majorDimension" : "rows",
+                        "values" : 
+                        [
+                            [k[0]]
+                        ]
+                    },
+                    {
+                        "range" : self.sheetname + "!F" + str(self.endRowIndex-1),
+                        "majorDimension" : "rows",
+                        "values" : 
+                        [
+                            ['Match cost: ']
+                        ]
+                    }
+                ]
+            }
+            res = service.spreadsheets().values().batchUpdate(spreadsheetId = self.spreadsheetId,
+            body = batch_update_spreadsheet_request_body).execute()
+            self.columnToWrite = self.incr[self.columnToWrite]
+            print('done with ' + k[0])
 
 root = Tk()
 ui(root)
