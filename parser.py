@@ -17,8 +17,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 class ui:
     link = 'https://osu.ppy.sh/community/matches/72098518'
-    #spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
-    spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
+    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
+    #spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
     sheetname = 'Week 3(2)'
     startColumnIndex = 7
     endColumnIndex = 67
@@ -74,20 +74,32 @@ class ui:
         dict_of_scores = {}
         counter = 0
         mappool_size = 0
+        rgb_string = '0 0 0'
         for item in data["events"]:
             if "game" in item.keys():
                 #print(json.dumps(item,indent=4))
                 for score in item["game"]["scores"]:
                     name = score["user_id"]
                     if name not in dict_of_scores.keys():
-                        dict_of_scores[name] = [[], []]
+                        dict_of_scores[name] = [[], [], []]
                         for i in range(counter):
                             dict_of_scores[name][0].append(0)
-                            dict_of_scores[name][1].append(0)
+                            dict_of_scores[name][1].append(0) 
+                            dict_of_scores[name][2].append(0) 
+                            
                     dict_of_scores[name][0].append(score["score"])
                     dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
+                    rgb_string = '204 204 204'
+                    if 'HD' in score['mods']:
+                        rgb_string = "255 229 153"
+                    if 'HR' in score['mods']:
+                        rgb_string = '234 153 153'
+                    if 'DT' in score['mods']:
+                        rgb_string = '180 167 214'
+                    dict_of_scores[name][2].append(rgb_string.split())
                 counter+=1
         temp = []
+        print(dict_of_scores)
         for score in dict_of_scores.values():
             temp.append(len(score[0]))
         self.mappool_size = int(statistics.median(temp))
@@ -105,11 +117,14 @@ class ui:
                 for i in range(len(scores[0]), self.mappool_size):
                     scores[0].append(0)
                     scores[1].append(0)
+                    scores[2].append(0, 0, 0)
             if len(scores[0]) > self.mappool_size:
                 for i in range(self.mappool_size):
                     if scores[0][i] == 0:
                         scores[0][i] = scores[0].pop(self.mappool_size)
                         scores[1][i] = scores[1].pop(self.mappool_size)
+                        scores[2][i] = scores[2].pop(self.mappool_size)
+                        
 
         self.endRowIndex = self.startRowIndex + self.mappool_size +  1
 
@@ -168,7 +183,12 @@ class ui:
                         "majorDimension" : "COLUMNS",
                         "values" : 
                         [
-                            k[1][0], k[1][1]
+                            k[1][0], k[1][1],
+                            {
+                                'red' : int(k[1][2][0]),
+                                'green' : int(k[1][2][1]),
+                                'blue' : int(k[1][2][2])
+                            }
                         ]
                     },
                     {
@@ -191,6 +211,43 @@ class ui:
             }
             res = service.spreadsheets().values().batchUpdate(spreadsheetId = self.spreadsheetId,
             body = batch_update_spreadsheet_request_body).execute()
+            mod_color = service.spreadsheets().batchUpdate(spreadsheetid = self.spreadsheetId,
+            body = {
+                "requests":     
+                [
+                    {
+                        "updateCells": 
+                        {
+                            "range": 
+                            {
+                                "sheetId": sheetId,
+                                "startRowIndex": 0,
+                                "endRowIndex": 1,
+                                "startColumnIndex": 0,
+                                "endColumnIndex": 1
+                            },
+                            "rows": 
+                            [
+                                {
+                                    "values": 
+                                    [
+                                        {
+                                            "userEnteredFormat": 
+                                            {
+                                                "backgroundColor":
+                                                {
+                                                    "red": 1
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            ],
+                            "fields": "userEnteredFormat.backgroundColor"
+                        }
+                    }
+                ]
+            })
             self.columnToWrite = self.incr[self.columnToWrite]
             print('done with ' + k[0])
 
