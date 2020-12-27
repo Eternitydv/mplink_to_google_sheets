@@ -15,7 +15,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import statistics
 import pygsheets
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-CREDENTIALS_FILE = 'D:\\Useful misc\\мплинкпарсер\\mplink_to_google_sheets\\match-results-19f739c32961.json'
+CREDENTIALS_FILE = oc.getcwd() + '\\match-results-19f739c32961.json'
 
 class ui:
     link = 'https://osu.ppy.sh/community/matches/71542504'
