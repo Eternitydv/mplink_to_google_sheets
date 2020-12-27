@@ -44,10 +44,10 @@ class ui:
         frame_mid = Frame(mainframe)
         frame_mid.pack()
         ttk.Label(frame_mid, text = "Название листа: Week ").pack(side=LEFT)
-        sheetname_entry1 = ttk.Entry(frame_mid, width = 2, textvariable = self.sheetname)
+        sheetname_entry1 = ttk.Entry(frame_mid, width = 2)
         sheetname_entry1.pack(side=LEFT)
         ttk.Label(frame_mid, text = "(").pack(side=LEFT)
-        sheetname_entry2 = ttk.Entry(frame_mid, width = 2, textvariable = self.sheetname)
+        sheetname_entry2 = ttk.Entry(frame_mid, width = 2)
         sheetname_entry2.pack(side=LEFT)
         ttk.Label(frame_mid, text = ")").pack(side=LEFT)
         
@@ -120,6 +120,7 @@ class ui:
         print('mappool size = ' + str(self.mappool_size))
 
         self.endColumnIndex = self.startColumnIndex + numberOfPeople*2 - 1
+
         print(self.endColumnIndex)
         counter = 0
 
@@ -138,7 +139,8 @@ class ui:
                         scores[2][i] = scores[2].pop(self.mappool_size)
                         
 
-        self.endRowIndex = self.startRowIndex + self.mappool_size + 1
+        self.endRowIndex = self.startRowIndex + self.mappool_size + 2
+
         print('endRowIndex = ' + str(self.endRowIndex))
 
         for id in list(dict_of_scores.keys()):
@@ -164,7 +166,7 @@ class ui:
         print(self.spreadsheetId)
         print(self.sheetname)
 
-        difficulty = sheet.cell('C23').value_unformatted
+        difficulty = sheet.cell((self.endRowIndex, 3)).value_unformatted
         print(difficulty)
         self.status.config(text = 'Prepping data for the api calls')
         data_dump = []
@@ -172,10 +174,13 @@ class ui:
         i = 0
         #prepping data dumps for api calls
         for scores in results.values():
-            scores[0].append('%.2f'%(sum(scores[0])/self.mappool_size/self.diff[difficulty]))
+            match_cost = '%.2f'%(sum(scores[0])/self.mappool_size/self.diff[difficulty])
+            scores[0].append(None)
+            scores[0].append(match_cost)
             scores[0].insert(0, self.names[i])
             data_dump.append(scores[0])
             scores[1].insert(0, None)
+            scores[1].append(None)
             data_dump.append(scores[1])
             color_ref.append(scores[2])
             color_ref.append(scores[2])
