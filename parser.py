@@ -1,26 +1,18 @@
 import requests
 import json
 from lxml import html
-import pickle
 from tkinter import *
 from tkinter import ttk
 import os
-import numpy as np
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-import httplib2 
-import apiclient.discovery
-from oauth2client.service_account import ServiceAccountCredentials
-import statistics
+from statistics import median
 import pygsheets
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-CREDENTIALS_FILE = oc.getcwd() + '\\match-results-19f739c32961.json'
+CREDENTIALS_FILE = os.getcwd() + '\\match-results-19f739c32961.json'
 
 class ui:
     link = 'https://osu.ppy.sh/community/matches/71542504'
-    #spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
-    spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
+    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
+    #spreadsheetId = '11fn6U7RhMPTD69EgZTgwvU_JSEOZt8QINd9mJ8Q8Y9s'
     sheetname = 'Week 2(1)'
     startColumnIndex = 7
     endColumnIndex = 67
