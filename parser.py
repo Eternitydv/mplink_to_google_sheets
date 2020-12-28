@@ -4,8 +4,10 @@ from lxml import html
 from tkinter import *
 from tkinter import ttk
 import os
-from statistics import median
+import statistics
 import pygsheets
+import pickle
+import os.path
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 CREDENTIALS_FILE = os.getcwd() + '\\match-results-19f739c32961.json'
 
@@ -195,19 +197,19 @@ class ui:
         self.status.config(text = 'Epic color programming')
         
         #adding rules for coloring cells
-        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-1, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
+        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
          format={'backgroundColor' : {'red' : 234/255, 'green' : 153/255, 'blue' : 153/255, 'alpha' : 1}}, condition_values=['=(G{}=\"HR\")'.format(self.startRowIndex+50)])
 
-        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-1, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
+        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
          format={'backgroundColor' : {'red' : 180/255, 'green' : 167/255, 'blue' : 214/255, 'alpha' : 1}}, condition_values=['=(G{}=\"DT\")'.format(self.startRowIndex+50)])
 
-        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-1, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
+        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
          format={'backgroundColor' : {'red' : 255/255, 'green' : 229/255, 'blue' : 153/255, 'alpha' : 1}}, condition_values=['=(G{}=\"HD\")'.format(self.startRowIndex+50)])
 
-        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-1, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
+        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
          format={'backgroundColor' : {'red' : 250/255, 'green' : 238/255, 'blue' : 243/255, 'alpha' : 1}}, condition_values=['=(G{}=\"NM\")'.format(self.startRowIndex+50)])
 
-        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-1, self.endColumnIndex), condition_type='CUSTOM_FORMULA', 
+        sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA', 
           format={'backgroundColor' : {'red' : 75/255, 'green' : 75/255, 'blue' : 75/255, 'alpha' : 1}}, condition_values=['=(G{}=0)'.format(self.startRowIndex+50)])
 
         self.status.config(text = 'Finished updating {}'.format(self.sheetname))
