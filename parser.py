@@ -14,14 +14,14 @@ CREDENTIALS_FILE = 'D:\\Useful misc\\мплинкпарсер\\mplink_to_google_
 class ui:
     link = 'https://osu.ppy.sh/community/matches/71707670'
     #spreadsheetId = '1D0Wa7xBdwjnwmIz5ACsNN775s_zy3a4EhftO39Vl_U4'
-    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRUs'
+    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
     sheetname = 'Week 2(2)'
     startColumnIndex = 7
     endColumnIndex = 67
     startRowIndex = 2
     endRowIndex = 18
     names = []
-    diff = {'Easy' : 600000, 'Medium' : 500000, 'Hard' : 400000, 'Markrum' : 150000}
+    diff = {'Easy' : 600000, 'Medium' : 500000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
     def __init__(self, root):
 
         root.title("Булщит в шит")
@@ -96,7 +96,7 @@ class ui:
         dict_of_scores = {}
         counter = 0
         mappool_size = 0
-
+        l = 0
         for item in data["events"]:
             if item['detail']['type'] == 'player-joined':
                 if item['user_id'] in dict_of_scores.keys():
@@ -106,7 +106,7 @@ class ui:
                         dict_of_scores[item['user_id']][2].append(0) 
 
             #print(json.dumps(item,indent=4))
-            if "game" in item.keys():
+            if "game" in item.keys() and item['game']['scores']:
                 for score in item["game"]["scores"]:
                     name = score["user_id"]
                     if name not in dict_of_scores.keys():
