@@ -9,7 +9,8 @@ import pygsheets
 import pickle
 import os.path
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-CREDENTIALS_FILE = 'D:\\Useful misc\\мплинкпарсер\\mplink_to_google_sheets\\match-results-19f739c32961.json'
+#CREDENTIALS_FILE = os.getcwd()+'\match-results-19f739c32961.json'
+CREDENTIALS_FILE = os.getcwd()+'\match-results-19f739c32961.json'
 
 class ui:
     link = 'https://osu.ppy.sh/community/matches/71707670'
@@ -21,11 +22,12 @@ class ui:
     startRowIndex = 2
     endRowIndex = 18
     names = []
-    diff = {'Easy' : 600000, 'Medium' : 500000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
+    k = 0
+    diff = {'Easy' : 600000, 'Medium' : 500000, 'Qualis' : 450000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
     def __init__(self, root):
-
+        k = IntVar()
         root.title("Булщит в шит")
-        root.geometry("400x100")
+        root.geometry("450x100")
         mainframe = ttk.Frame(root)
         mainframe.pack(fill=BOTH, expand=True)
 
@@ -45,6 +47,8 @@ class ui:
         sheetname_entry2 = ttk.Entry(frame_mid, width = 2)
         sheetname_entry2.pack(side=LEFT)
         ttk.Label(frame_mid, text = ")").pack(side=LEFT)
+        w = Checkbutton(frame_mid, text = 'Квалы', variable = k, onvalue = 1, offvalue = 0)
+        w.pack(side = LEFT)
         
         frame_third = Frame(mainframe)
         frame_third.pack()
@@ -54,8 +58,8 @@ class ui:
 
         frame_bot = Frame(mainframe)
         frame_bot.pack()
-        ttk.Button(frame_bot, text="Отправить результаты", command = lambda: self.to_sheet(link_space, sheetname_entry1, sheetname_entry2, sheet_id, add = False)).pack(side=LEFT)
-        ttk.Button(frame_bot, text="Добавить результаты", command = lambda: self.to_sheet(link_space, sheetname_entry1, sheetname_entry2, sheet_id, add = True)).pack(side=LEFT)
+        ttk.Button(frame_bot, text="Отправить результаты", command = lambda: self.to_sheet(link_space, sheetname_entry1, sheetname_entry2, sheet_id, k, add = False)).pack(side=LEFT)
+        ttk.Button(frame_bot, text="Добавить результаты", command = lambda: self.to_sheet(link_space, sheetname_entry1, sheetname_entry2, sheet_id, k, add = True)).pack(side=LEFT)
         self.status = ttk.Label(frame_bot, text='Ready')
         self.status.pack(side=LEFT)
 
@@ -97,6 +101,7 @@ class ui:
         counter = 0
         mappool_size = 0
         l = 0
+        beatmap_ids = []
         for item in data["events"]:
             if item['detail']['type'] == 'player-joined':
                 if item['user_id'] in dict_of_scores.keys():
@@ -107,36 +112,62 @@ class ui:
 
             #print(json.dumps(item,indent=4))
             if "game" in item.keys() and item['game']['scores']:
-                for score in item["game"]["scores"]:
-                    name = score["user_id"]
-                    if name not in dict_of_scores.keys():
-                        numberOfPeople+=1
-                        dict_of_scores[name] = [[], [], []]
-                        for i in range(counter):
-                            dict_of_scores[name][0].append(0)
-                            dict_of_scores[name][1].append(0) 
-                            dict_of_scores[name][2].append(0) 
-                            
-                    dict_of_scores[name][0].append(score["score"])
-                    dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
 
-                    if 'DT' in score['mods']:
-                        dict_of_scores[name][2].append('DT')
-                    elif 'HR' in score['mods']:
-                        dict_of_scores[name][2].append('HR')
-                    elif 'HD' in score['mods']:
-                        dict_of_scores[name][2].append('HD')
-                    else:
-                        dict_of_scores[name][2].append('NM')
+                if item['game']['beatmap']['id'] not in beatmap_ids:
+                    beatmap_ids.append(item['game']['beatmap']['id'])
+    
+                    for score in item["game"]["scores"]:
+                        name = score["user_id"]
+                        if name not in dict_of_scores.keys():
+                            numberOfPeople+=1
+                            dict_of_scores[name] = [[], [], []]
+                            for i in range(counter):
+                                dict_of_scores[name][0].append(0)
+                                dict_of_scores[name][1].append(0) 
+                                dict_of_scores[name][2].append(0) 
+                                
+                        dict_of_scores[name][0].append(score["score"])
+                        dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
 
-                counter+=1
+                        if 'DT' in score['mods']:
+                            dict_of_scores[name][2].append('DT')
+                        elif 'HR' in score['mods']:
+                            dict_of_scores[name][2].append('HR')
+                        elif 'HD' in score['mods']:
+                            dict_of_scores[name][2].append('HD')
+                        else:
+                            dict_of_scores[name][2].append('NM')
+                    counter+=1
 
+                elif item['game']['beatmap']['id'] == beatmap_ids[-1]:
+                    for score in item["game"]["scores"]:
+                        name = score["user_id"]
+                        if name not in dict_of_scores.keys():
+                            numberOfPeople+=1
+                            dict_of_scores[name] = [[], [], []]
+                            for i in range(counter):
+                                dict_of_scores[name][0].append(0)
+                                dict_of_scores[name][1].append(0) 
+                                dict_of_scores[name][2].append(0) 
+                                
+                        dict_of_scores[name][0][-1] = score["score"]
+                        dict_of_scores[name][1][-1] = '%.2f'%(score["accuracy"]*100)
+
+                        if 'DT' in score['mods']:
+                            dict_of_scores[name][2][-1] = 'DT'
+                        elif 'HR' in score['mods']:
+                            dict_of_scores[name][2][-1] = 'HR'
+                        elif 'HD' in score['mods']:
+                            dict_of_scores[name][2][-1] = 'HD'
+                        else:
+                            dict_of_scores[name][2][-1] = 'NM'
+                
         temp = []
         print(dict_of_scores)
 
         for score in dict_of_scores.values():
             temp.append(len(score[0]))
-        self.mappool_size = int(statistics.median(temp))
+        self.mappool_size = counter
         print('mappool size = ' + str(self.mappool_size))
 
         self.endColumnIndex = self.startColumnIndex + numberOfPeople*2 - 1
@@ -159,8 +190,12 @@ class ui:
         #adding rules for coloring cells
         if self.startColumnIndex + 64 < 91:
             column = chr(self.startColumnIndex + 64)
-        else:
+        elif self.startColumnIndex + 64 < 117:
             column = "A" + chr(self.startColumnIndex + 38)
+        elif self.startColumnIndex + 64 < 143:
+            column = 'B' + chr(self.startColumnIndex + 12)
+        elif self.startColumnIndex + 64 < 169:
+            column = 'C' + chr(self.startColumnIndex - 14)
         #============================NEW FORMAT==============================================================================================================
         sheet.add_conditional_formatting(start = _range.start_addr, end = _range.end_addr, condition_type='CUSTOM_FORMULA',
             format={'textFormat' : {'foregroundColor' : {'red' : 224/255, 'green' : 102/255, 'blue' : 102/255, 'alpha' : 1}}}, condition_values=['=({}{}=\"HR\")'.format(column, self.startRowIndex+50)])
@@ -201,18 +236,21 @@ class ui:
         print("self.startColumnIndex = " + str(self.startColumnIndex))
 
         cell_list = sheet.range(crange='E3:E30', returnas='matrix')
-        print(cell_list)
+       # print(cell_list)
         cell_list = [i for i in cell_list if i != ['']]
-        print(cell_list)
-        self.endRowIndex = self.startRowIndex + len(cell_list) + 2
+       # print(cell_list)
+        self.endRowIndex = self.startRowIndex + len(cell_list) + 1
         print(self.endRowIndex)
 
-    def to_sheet(self, link_space, sheetname_entry1, sheetname_entry2, sheet_id, add):
+    def to_sheet(self, link_space, sheetname_entry1, sheetname_entry2, sheet_id, w, add):
+        print(w.get())
         self.link = link_space.get()
-        self.sheetname = 'Week {}({})'.format(sheetname_entry1.get(), sheetname_entry2.get())
+        if w.get() == 1:
+            self.sheetname = 'Квалы'
+        else: 
+            self.sheetname = 'Week {}({})'.format(sheetname_entry1.get(), sheetname_entry2.get())
 
         print(self.sheetname)
-        
         if sheet_id.get() != None:
             self.spreadsheetId = sheet_id.get()
 
@@ -293,32 +331,33 @@ class ui:
     def update_stats_add(self, spreadsheet, data_dump):
         stats = spreadsheet.worksheet_by_title('Stats')
         cell_list = stats.range(crange='1:1', returnas='matrix')[0]
-        del cell_list[0]
-        names_in_stats = [i for i in cell_list if i != '']
+        weeks = [i for i in cell_list if i]
 
         cell_list = stats.range(crange='A1:A50', returnas='matrix')
-        cell_list = [i for i in cell_list if i != ['']]
+        names_in_stats = [i[0] for i in cell_list if i]
         print(names_in_stats)
-        row = cell_list.index([self.sheetname]) + 1
+        col = week.index([self.sheetname]) + 1
         if data_dump[0][0] in names_in_stats:
-            column = names_in_stats.index(data_dump[0][0]) + 2
+            row = names_in_stats.index(data_dump[0][0]) + 2
         else:
-            column = len(names_in_stats) + 1
+            row = len(names_in_stats) + 2
+            stats.update_value(addr=(row, 1), val=data_dump[0][0])
         stats.update_value(addr=(row, column), val = data_dump[0][-1])
 
 
     def update_stats_initial(self, spreadsheet, data_dump):
         stats = spreadsheet.worksheet_by_title('Stats')
         cell_list = stats.range(crange='1:1', returnas='matrix')[0]
-        del cell_list[0]
-        names_in_stats = [i for i in cell_list if i != '']
+        cell_list = [i for i in cell_list if i]
+        if self.sheetname in cell_list:
+            column = cell_list.index(self.sheetname) + 1
+        else:
+            column = len(cell_list) + 1
+
 
         cell_list = stats.range(crange='A1:A50', returnas='matrix')
-        cell_list = [i for i in cell_list if i != ['']]
-        if self.sheetname in cell_list:
-            row = cell_list.index(self.sheetname)
-        else:
-            row = len(cell_list) + 1
+        del cell_list[0]
+        names_in_stats = [i[0] for i in cell_list if i]
         results = {}
         for i in data_dump[::2]:
             results[i[0]] = i[-1]
@@ -333,10 +372,11 @@ class ui:
                 data.append(results[i])
             else:
                 data.append('')
-        data_range = pygsheets.datarange.DataRange(start=(row, 1), end=(row, len(data) + 1), worksheet=stats)
-        name_range = pygsheets.datarange.DataRange(start=(1, len(names_in_stats)+1), end=(1, len(names_in_stats) + 1 + len(name_data)), worksheet=stats)
-        stats.update_values(crange = data_range.range, values = [data], majordim = 'ROWS', parse=True)
-        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'ROWS', parse=False)
+
+        data_range = pygsheets.datarange.DataRange(start=(1, column), end=(len(data) + 1, column), worksheet=stats)
+        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+2, 1), end=(len(names_in_stats) + 2 + len(name_data), 1), worksheet=stats)
+        stats.update_values(crange = data_range.range, values = [data], majordim = 'COLUMNS', parse=True)
+        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'COLUMNS', parse=False)
         
 
     # def update_stats(self, spreadsheet, results):
