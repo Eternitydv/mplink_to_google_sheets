@@ -26,7 +26,7 @@ class ui:
     diff = {'Easy' : 600000, 'Medium' : 500000, 'Qualis' : 450000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
     def __init__(self, root):
         k = IntVar()
-        root.title("Булщит в шит")
+        root.title("Mplink parser")
         root.geometry("450x100")
         mainframe = ttk.Frame(root)
         mainframe.pack(fill=BOTH, expand=True)
@@ -73,8 +73,8 @@ class ui:
         data = json.loads(str(results[0]))
         return data["username"]
 
-    def fix_score_list(self, dict_of_scores):
-        for scores in dict_of_scores.values(): #will readjust if someone had played the maps after the end of the lobby
+    def fix_score_list(self, dict_of_scores): #will readjust if someone had played the maps after the end of the lobby
+        for scores in dict_of_scores.values():
             if len(scores[0]) < self.mappool_size:
                 for i in range(len(scores[0]), self.mappool_size):
                     scores[0].append(0)
@@ -188,6 +188,8 @@ class ui:
 
     def add_mod_color_rules(self, sheet, _range):
         #adding rules for coloring cells
+
+        #fixing column letter for really long sheets
         if self.startColumnIndex + 64 < 91:
             column = chr(self.startColumnIndex + 64)
         elif self.startColumnIndex + 64 < 117:
@@ -196,6 +198,8 @@ class ui:
             column = 'B' + chr(self.startColumnIndex + 12)
         elif self.startColumnIndex + 64 < 169:
             column = 'C' + chr(self.startColumnIndex - 14)
+        elif self.startColumnIndex + 64 < 195:
+            column = 'C' + chr(self.startColumnIndex - 40)
         #============================NEW FORMAT==============================================================================================================
         sheet.add_conditional_formatting(start = _range.start_addr, end = _range.end_addr, condition_type='CUSTOM_FORMULA',
             format={'textFormat' : {'foregroundColor' : {'red' : 224/255, 'green' : 102/255, 'blue' : 102/255, 'alpha' : 1}}}, condition_values=['=({}{}=\"HR\")'.format(column, self.startRowIndex+50)])
@@ -211,7 +215,7 @@ class ui:
 
         sheet.add_conditional_formatting(start = _range.start_addr, end = _range.end_addr, condition_type='CUSTOM_FORMULA', 
             format={'textFormat' : {'foregroundColor' : {'red' : 75/255, 'green' : 75/255, 'blue' : 75/255, 'alpha' : 1}}}, condition_values=['=({}{}=0)'.format(column, self.startRowIndex+50)])
-
+        #============================OLD FORMAT==============================================================================================================
         # sheet.add_conditional_formatting(start = (self.startRowIndex + 1, self.startColumnIndex), end = (self.endRowIndex-2, self.endColumnIndex), condition_type='CUSTOM_FORMULA',
         #  format={'backgroundColor' : {'red' : 234/255, 'green' : 153/255, 'blue' : 153/255, 'alpha' : 1}}, condition_values=['=(G{}=\"HR\")'.format(self.startRowIndex+50)])
 
@@ -334,7 +338,7 @@ class ui:
         weeks = [i for i in cell_list if i]
 
         cell_list = stats.range(crange='A1:A50', returnas='matrix')
-        names_in_stats = [i[0] for i in cell_list if i]
+        names_in_stats = [i[0] for i in cell_list if i != ['']]
         print(names_in_stats)
         col = week.index([self.sheetname]) + 1
         if data_dump[0][0] in names_in_stats:
@@ -357,7 +361,7 @@ class ui:
 
         cell_list = stats.range(crange='A1:A50', returnas='matrix')
         del cell_list[0]
-        names_in_stats = [i[0] for i in cell_list if i]
+        names_in_stats = [i[0] for i in cell_list if i != ['']]
         results = {}
         for i in data_dump[::2]:
             results[i[0]] = i[-1]
@@ -374,7 +378,7 @@ class ui:
                 data.append('')
 
         data_range = pygsheets.datarange.DataRange(start=(1, column), end=(len(data) + 1, column), worksheet=stats)
-        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+2, 1), end=(len(names_in_stats) + 2 + len(name_data), 1), worksheet=stats)
+        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+1, 1), end=(len(names_in_stats) + 2 + len(name_data), 1), worksheet=stats)
         stats.update_values(crange = data_range.range, values = [data], majordim = 'COLUMNS', parse=True)
         stats.update_values(crange = name_range.range, values = [name_data], majordim = 'COLUMNS', parse=False)
         
