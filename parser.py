@@ -161,6 +161,28 @@ class ui:
                             dict_of_scores[name][2][-1] = 'HD'
                         else:
                             dict_of_scores[name][2][-1] = 'NM'
+                else:
+                    for score in item["game"]["scores"]:
+                        name = score["user_id"]
+                        if name not in dict_of_scores.keys():
+                            numberOfPeople+=1
+                            dict_of_scores[name] = [[], [], []]
+                            for i in range(counter):
+                                dict_of_scores[name][0].append(0)
+                                dict_of_scores[name][1].append(0) 
+                                dict_of_scores[name][2].append(0) 
+                                
+                        dict_of_scores[name][0].append(score["score"])
+                        dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
+
+                        if 'DT' in score['mods']:
+                            dict_of_scores[name][2].append('DT')
+                        elif 'HR' in score['mods']:
+                            dict_of_scores[name][2].append('HR')
+                        elif 'HD' in score['mods']:
+                            dict_of_scores[name][2].append('HD')
+                        else:
+                            dict_of_scores[name][2].append('NM')                
                 
         temp = []
         print(dict_of_scores)
@@ -199,7 +221,7 @@ class ui:
         elif self.startColumnIndex + 64 < 169:
             column = 'C' + chr(self.startColumnIndex - 14)
         elif self.startColumnIndex + 64 < 195:
-            column = 'C' + chr(self.startColumnIndex - 40)
+            column = 'D' + chr(self.startColumnIndex - 40)
         #============================NEW FORMAT==============================================================================================================
         sheet.add_conditional_formatting(start = _range.start_addr, end = _range.end_addr, condition_type='CUSTOM_FORMULA',
             format={'textFormat' : {'foregroundColor' : {'red' : 224/255, 'green' : 102/255, 'blue' : 102/255, 'alpha' : 1}}}, condition_values=['=({}{}=\"HR\")'.format(column, self.startRowIndex+50)])
@@ -236,7 +258,7 @@ class ui:
         del cell_list[0:6]
         cell_list = [i for i in cell_list if i != '']
         self.startColumnIndex += len(cell_list)
-        self.endColumnIndex = self.startColumnIndex + 1
+        self.endColumnIndex = self.startColumnIndex + 1 + 2*len(self.names)
         print("self.startColumnIndex = " + str(self.startColumnIndex))
 
         cell_list = sheet.range(crange='E3:E30', returnas='matrix')
@@ -378,26 +400,10 @@ class ui:
                 data.append('')
 
         data_range = pygsheets.datarange.DataRange(start=(1, column), end=(len(data) + 1, column), worksheet=stats)
-        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+1, 1), end=(len(names_in_stats) + 2 + len(name_data), 1), worksheet=stats)
+        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+1, 1), end=(len(names_in_stats) + 1 + len(name_data), 1), worksheet=stats)
         stats.update_values(crange = data_range.range, values = [data], majordim = 'COLUMNS', parse=True)
         stats.update_values(crange = name_range.range, values = [name_data], majordim = 'COLUMNS', parse=False)
         
-
-    # def update_stats(self, spreadsheet, results):
-    #     sheet = spreadsheet.worksheet_by_title("Stats")
-    #     name_range = sheet.range(crange="1:1", returnas="matrix")[0]
-    #     name_range = [i for i in name_range if i !='']
-    #     print(name_range)
-    #     data = []
-    #     names_to_submit = list(results.keys())
-    #     for name in name_range:
-    #         if name in names_to_submit:
-    #             data.append(results[name][0][-1])
-    #         else:
-    #             data.append(None)
-    #     row = sheet.
-    #     submit_range = pygsheets.datarange.DataRange(start = (, 2), end = (, 2 + len(name_range)), worksheet=sheet)
-    #     sheet.update_values(crange = )
 
 # def backport_stats():
 #     gc = pygsheets.authorize(service_file=CREDENTIALS_FILE)
@@ -449,23 +455,6 @@ class ui:
 #         stats_data.append(results[i])
 #     stats.update_values(crange = data_range.range, values = stats_data, majordim = 'COLUMNS', parse=True)
 #     stats.update_values(crange = name_range.range, values = name_data, majordim = 'COLUMNS', parse=False)
-
-# def get_stats(sheet):
-#     cell_list = sheet.range(crange='2:2', returnas='matrix')[0]
-#     del cell_list[0:6]
-#     names = [i for i in cell_list if i != '']
-#     print(names)
-#     costs_row = str(sheet.find('Match cost:')[0].row)
-#     costs = sheet.range(crange=str(costs_row+':'+costs_row), returnas='matrix')[0]
-#     del costs[0:6]
-#     costs = [i for i in costs if i != '']
-#     print(costs)
-#     results = {}
-#     for i in range(len(names)):
-#         results[names[i]] = costs[i]
-#     return results
-
-# backport_stats()
 
 root = Tk()
 ui(root)
