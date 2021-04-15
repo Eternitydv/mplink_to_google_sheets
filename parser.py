@@ -110,36 +110,10 @@ class ui:
                         dict_of_scores[item['user_id']][1].append(0) 
                         dict_of_scores[item['user_id']][2].append(0) 
 
-            print(json.dumps(item,indent=4))
+            #print(json.dumps(item,indent=4))
             if "game" in item.keys() and item['game']['scores']:
 
-                if item['game']['beatmap']['id'] not in beatmap_ids:
-                    beatmap_ids.append(item['game']['beatmap']['id'])
-    
-                    for score in item["game"]["scores"]:
-                        name = score["user_id"]
-                        if name not in dict_of_scores.keys():
-                            numberOfPeople+=1
-                            dict_of_scores[name] = [[], [], []]
-                            for i in range(counter):
-                                dict_of_scores[name][0].append(0)
-                                dict_of_scores[name][1].append(0) 
-                                dict_of_scores[name][2].append(0) 
-                                
-                        dict_of_scores[name][0].append(score["score"])
-                        dict_of_scores[name][1].append('%.2f'%(score["accuracy"]*100))
-
-                        if 'DT' in score['mods']:
-                            dict_of_scores[name][2].append('DT')
-                        elif 'HR' in score['mods']:
-                            dict_of_scores[name][2].append('HR')
-                        elif 'HD' in score['mods']:
-                            dict_of_scores[name][2].append('HD')
-                        else:
-                            dict_of_scores[name][2].append('NM')
-                    counter+=1
-
-                elif item['game']['beatmap']['id'] == beatmap_ids[-1]:
+                if beatmap_ids and item['game']['beatmap']['id'] == beatmap_ids[-1]:
                     for score in item["game"]["scores"]:
                         name = score["user_id"]
                         if name not in dict_of_scores.keys():
@@ -182,7 +156,10 @@ class ui:
                         elif 'HD' in score['mods']:
                             dict_of_scores[name][2].append('HD')
                         else:
-                            dict_of_scores[name][2].append('NM')                
+                            dict_of_scores[name][2].append('NM')
+                    if item['game']['beatmap']['id'] not in beatmap_ids:
+                        beatmap_ids.append(item['game']['beatmap']['id'])
+                        counter += 1
                 
         temp = []
         print(dict_of_scores)
@@ -347,12 +324,12 @@ class ui:
         
         self.add_mod_color_rules(sheet, color_range)
 
-        print('finished updating {}'.format(self.sheetname))
         self.status.config(text = 'Updating stats')
         if add:
             self.update_stats_add(spreadsheet, data_dump)
         else:
             self.update_stats_initial(spreadsheet, data_dump)
+        print('finished updating {}'.format(self.sheetname))
         self.status.config(text = 'Finished updating {}'.format(self.sheetname))
         self.names.clear()
         self.startColumn = 7
@@ -410,7 +387,7 @@ class ui:
         data_range = pygsheets.datarange.DataRange(start=(1, column), end=(len(data) + 1, column), worksheet=stats)
         name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+1, 1), end=(len(names_in_stats) + 1 + len(name_data), 1), worksheet=stats)
         stats.update_values(crange = data_range.range, values = [data], majordim = 'COLUMNS', parse=True)
-        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'COLUMNS', parse=False)
+        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'ROWS', parse=False)
         
 
 # def backport_stats():
