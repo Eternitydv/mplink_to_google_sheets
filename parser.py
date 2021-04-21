@@ -25,6 +25,7 @@ class ui:
     k = 0
     diff = {'Easy' : 600000, 'Medium' : 500000, 'Qualis' : 450000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
     def __init__(self, root):
+        """Инициализация окна юи"""
         k = IntVar()
         root.title("Mplink parser")
         root.geometry("450x100")
@@ -66,6 +67,7 @@ class ui:
         link_space.focus()
 
     def get_username_from_id(self, user_id):
+        """Получается ник вместо айди профиля"""
         url = "https://osu.ppy.sh/users/" + str(user_id)
         page = requests.get(url)
         tree = html.fromstring(page.content)
@@ -74,6 +76,7 @@ class ui:
         return data["username"]
 
     def fix_score_list(self, dict_of_scores): #will readjust if someone had played the maps after the end of the lobby
+        """Поправляет список результатов при доигрывании после остальных"""
         for scores in dict_of_scores.values():
             if len(scores[0]) < self.mappool_size:
                 for i in range(len(scores[0]), self.mappool_size):
@@ -90,6 +93,7 @@ class ui:
         return dict_of_scores
 
     def parse_the_link(self, link):
+        """Парс ссылки на лобби"""
         numberOfPeople = 0
         print('started parsing')
         self.status.config(text = 'Parsing the mp link')
@@ -186,19 +190,18 @@ class ui:
         return dict_of_scores
 
     def add_mod_color_rules(self, sheet, _range):
-        #adding rules for coloring cells
+        """Добавляет красивые правила покраски в таблицу"""
 
-        #fixing column letter for really long sheets
-        if self.startColumn + 64 < 91:
-            column = chr(self.startColumn + 64)
-        elif self.startColumn + 64 < 117:
-            column = "A" + chr(self.startColumn + 38)
-        elif self.startColumn + 64 < 143:
-            column = 'B' + chr(self.startColumn + 12)
-        elif self.startColumn + 64 < 169:
-            column = 'C' + chr(self.startColumn - 14)
-        elif self.startColumn + 64 < 195:
-            column = 'D' + chr(self.startColumn - 40)
+        #изменнеие названия области при очень длинных таблицах
+        temp = self.startColumn + 64
+        ascii_boundry = 91
+        k = 0
+        first_letter = {0 : "", 1 : "A", 2 : "B", 3 : "C", 4 : "D", 5 : "E", 6 : "F", 7 : "G", 8 : "H", 9 : "I"}
+        while temp >= ascii_boundry:
+            ascii_boundry+=26
+            k += 1
+        column = first_letter[k] + chr(temp - 26*k)
+
         #============================NEW FORMAT==============================================================================================================
         sheet.add_conditional_formatting(start = _range.start_addr, end = _range.end_addr, condition_type='CUSTOM_FORMULA',
             format={'textFormat' : {'foregroundColor' : {'red' : 224/255, 'green' : 102/255, 'blue' : 102/255, 'alpha' : 1}}}, condition_values=['=({}{}=\"HR\")'.format(column, self.startRow+50)])
@@ -231,6 +234,7 @@ class ui:
         #   format={'backgroundColor' : {'red' : 75/255, 'green' : 75/255, 'blue' : 75/255, 'alpha' : 1}}, condition_values=['=(G{}=0)'.format(self.startRow+50)])
 
     def update_range_data(self, sheet):
+        """Поправляет начало области добавления данных"""
         #sets the range to after the already submitted scores
         cell_list = sheet.range(crange='3:3', returnas='matrix')[0]
         del cell_list[0:6]
@@ -249,7 +253,8 @@ class ui:
 
         #main function that really needs to be broken up 
     def to_sheet(self, link_space, sheetname_entry1, sheetname_entry2, sheet_id, w, add): 
-        
+        """Основная функция добавления результатов в таблицу"""
+
         print(w.get())
         self.link = link_space.get()
         if w.get() == 1:
@@ -338,7 +343,8 @@ class ui:
 
     #updates stats if someone plays the pool separately
     def update_stats_add(self, spreadsheet, data_dump):
-        
+        """Функция апдейта листа статистики при добавлении к уже существующей неделе"""
+
         stats = spreadsheet.worksheet_by_title('Stats')
         cell_list = stats.range(crange='1:1', returnas='matrix')[0]
         weeks = [i for i in cell_list if i]
@@ -357,6 +363,8 @@ class ui:
 
 
     def update_stats_initial(self, spreadsheet, data_dump):
+        """Функция апдейта листа статистики при добавлении к новой неделе"""
+
         stats = spreadsheet.worksheet_by_title('Stats')
         cell_list = stats.range(crange='1:1', returnas='matrix')[0]
         cell_list = [i for i in cell_list if i]
@@ -391,6 +399,7 @@ class ui:
         
 
 # def backport_stats():
+      """забирается результаты из старых таблиц для статистики"""
 #     gc = pygsheets.authorize(service_file=CREDENTIALS_FILE)
 #     spreadsheet = gc.open_by_key('1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU')
 #     weeks = []
