@@ -8,19 +8,19 @@ import statistics
 import pygsheets
 import pickle
 import os.path
+import googleapiclient
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-#CREDENTIALS_FILE = os.getcwd()+'\match-results-19f739c32961.json'
 CREDENTIALS_FILE = os.getcwd()+'\match-results-19f739c32961.json'
-
+#CREDENTIALS_FILE = 'D:\\Useful misc\\mplink_to_google_sheets\\match-results-19f739c32961.json'
 class ui:
     link = 'https://osu.ppy.sh/community/matches/71707670'
-    #spreadsheetId = '1D0Wa7xBdwjnwmIz5ACsNN775s_zy3a4EhftO39Vl_U4'
-    spreadsheetId = '1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU'
+    #spreadsheetId = '1PwHebQ5kWMxCILBgJMkSGOBtxfKHNVvrEVwiEUom63U'
+    spreadsheetId = '1T71GhIE4YxHZdzcp6yt5EjXdHCdY8cMky9gqDRnhujA'
     sheetname = 'Week 2(2)'
     startColumn = 7
-    endColumn = 67
+    endColumn = 0
     startRow = 2
-    endRow = 18
+    endRow = 0
     names = []
     k = 0
     diff = {'Easy' : 600000, 'Medium' : 500000, 'Qualis' : 450000, 'Hard' : 400000, 'Insane' : 300000, 'Markrum' : 150000}
@@ -235,7 +235,7 @@ class ui:
 
     def update_range_data(self, sheet):
         """Поправляет начало области добавления данных"""
-        #sets the range to after the already submitted scores
+        #sets the range to start after the already submitted scores
         cell_list = sheet.range(crange='3:3', returnas='matrix')[0]
         del cell_list[0:6]
         cell_list = [i for i in cell_list if i != '']
@@ -274,9 +274,11 @@ class ui:
         spreadsheet = gc.open_by_key(self.spreadsheetId)
         sheet = spreadsheet.worksheet_by_title(self.sheetname)
 
-        if add:
-            self.update_range_data(sheet)
-            results = self.fix_score_list(results)
+
+        self.update_range_data(sheet)
+        results = self.fix_score_list(results)
+
+        
         print(self.startColumn)
 
         print(self.spreadsheetId)
@@ -352,14 +354,14 @@ class ui:
         cell_list = stats.range(crange='A1:A50', returnas='matrix')
         names_in_stats = [i[0] for i in cell_list if i != ['']]
         print(names_in_stats)
-        col = week.index([self.sheetname]) + 1
+        col = weeks.index([self.sheetname]) + 1
         for data in data_dump[::2]:
             if data[0] in names_in_stats:
                 row = names_in_stats.index(data[0]) + 2
             else:
                 row = len(names_in_stats) + 2
                 stats.update_value(addr=(row, 1), val=data[0])
-            stats.update_value(addr=(row, column), val = data[-1])
+            stats.update_value(addr=(row, col), val = data[-1])
 
 
     def update_stats_initial(self, spreadsheet, data_dump):
@@ -374,9 +376,10 @@ class ui:
             column = len(cell_list) + 1
 
 
-        cell_list = stats.range(crange='A1:A50', returnas='matrix')
+        cell_list = stats.range(crange='A:A', returnas='matrix')
         del cell_list[0]
         names_in_stats = [i[0] for i in cell_list if i != ['']]
+        start_name_row = len(names_in_stats) + 2
         results = {}
         for i in data_dump[::2]:
             results[i[0]] = i[-1]
@@ -393,13 +396,13 @@ class ui:
                 data.append('')
 
         data_range = pygsheets.datarange.DataRange(start=(1, column), end=(len(data) + 1, column), worksheet=stats)
-        name_range = pygsheets.datarange.DataRange(start=(len(names_in_stats)+1, 1), end=(len(names_in_stats) + 1 + len(name_data), 1), worksheet=stats)
+        name_range = pygsheets.datarange.DataRange(start=(start_name_row, 1), end=(start_name_row + len(name_data), 1), worksheet=stats)
         stats.update_values(crange = data_range.range, values = [data], majordim = 'COLUMNS', parse=True)
-        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'ROWS', parse=False)
+        stats.update_values(crange = name_range.range, values = [name_data], majordim = 'COLUMNS', parse=False)
         
 
 # def backport_stats():
-      """забирается результаты из старых таблиц для статистики"""
+     # """забираются результаты из старых таблиц для статистики"""
 #     gc = pygsheets.authorize(service_file=CREDENTIALS_FILE)
 #     spreadsheet = gc.open_by_key('1Kst83QCbmRISmUt0zDO7938kZ9SdUczlpGlVh_qIVRU')
 #     weeks = []
